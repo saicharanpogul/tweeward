@@ -2,6 +2,7 @@ import { getTweetStats } from "@/api";
 import useSignature from "@/hooks/useSignature";
 import {
   Button,
+  CircularProgress,
   Flex,
   Menu,
   MenuButton,
@@ -9,6 +10,7 @@ import {
   MenuList,
   Text,
   useDisclosure,
+  useMediaQuery,
   useToast,
 } from "@chakra-ui/react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
@@ -38,11 +40,13 @@ const StatCard = ({
   fetchStats: () => Promise<void>;
 }) => {
   const [refreshing, setRefreshing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { connection } = useConnection();
   const walletAdapter = useWallet();
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { signature, getSignature } = useSignature();
+  const [isLessThan768] = useMediaQuery("(max-width: 768px)");
   const refreshStat = useCallback(
     async (id: string) => {
       try {
@@ -91,6 +95,7 @@ const StatCard = ({
           duration: 4000,
         });
       }
+      setDeleting(true);
       const tweeward = new Tweeward(walletAdapter.publicKey?.toBase58());
       await tweeward.removeStat(tweet?.tweetId);
       await fetchStats();
@@ -103,6 +108,8 @@ const StatCard = ({
       });
     } catch (error) {
       console.log(error);
+    } finally {
+      setDeleting(false);
     }
   }, [
     connection,
@@ -126,6 +133,7 @@ const StatCard = ({
       </Flex>
       <Flex
         justifyContent={"space-evenly"}
+        alignItems="center"
         mt="4"
         flexDir={["column", "column", "row", "row", "row"]}
       >
@@ -147,23 +155,43 @@ const StatCard = ({
         <Menu
           onOpen={onOpen}
           onClose={onClose}
-          isOpen={isOpen}
+          isOpen={!deleting && isOpen}
           placement="bottom-end"
         >
           {({ isOpen }) => (
             <>
               <MenuButton
+                w={["full", "full", "initial", "initial", "initial"]}
+                color="white"
+                mt={["2", "2", "initial", "initial", "initial"]}
                 isActive={isOpen}
                 as={Button}
                 alignItems={"center"}
                 justifyContent="center"
-                rightIcon={<FiMoreVertical color="white" />}
+                rightIcon={
+                  deleting ? (
+                    <CircularProgress
+                      pos="absolute"
+                      top="2"
+                      right="2"
+                      isIndeterminate
+                      size="5"
+                      thickness={"5px"}
+                      color="gray.500"
+                      trackColor="transparent"
+                    />
+                  ) : (
+                    <FiMoreVertical color="white" />
+                  )
+                }
                 variant="ghost"
                 pl="2"
                 border="1px solid white"
                 _hover={{ backgroundColor: "transparent" }}
                 _active={{ backgroundColor: "transparent" }}
-              />
+              >
+                {isLessThan768 && "More"}
+              </MenuButton>
               <MenuList bg="secondary.900">
                 <MenuItem
                   bg="secondary.900"
@@ -176,17 +204,6 @@ const StatCard = ({
             </>
           )}
         </Menu>
-        {/* <Icon
-          as={FiMoreVertical}
-          w="6"
-          h="10"
-          color="white"
-          py="2"
-          border="1px solid white"
-          borderRadius="6"
-          cursor="pointer"
-          onClick={onOpen}
-        /> */}
       </Flex>
     </Flex>
   );
