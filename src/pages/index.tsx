@@ -117,6 +117,7 @@ export default function Home() {
   useEffect(() => {
     fetchStats();
   }, [fetchStats]);
+  useEffect(() => {}, [tweets]);
   const buttonTitle = walletAdapter.connected
     ? balance < 30000000
       ? "Insufficient Balance"
