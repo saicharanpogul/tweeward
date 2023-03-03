@@ -14,3 +14,5 @@ type Signer = {
   signTransaction(transaction: Transaction): Promise<Transaction>;
   signAllTransactions(transactions: Transaction[]): Promise<Transaction[]>;
 };
+
+type Progress = "initialized" | "updated" | "closed" | undefined;

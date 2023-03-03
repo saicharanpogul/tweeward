@@ -44,10 +44,20 @@ class Tweeward {
     return stats;
   }
 
-  async getStat(path = "") {
-    return await getDoc(
-      doc(this.collection, path ? `${this.address}/${path}` : this.address)
-    );
+  // async getStat(path = "") {
+  //   return await getDoc(
+  //     doc(this.collection, path ? `${this.address}/${path}` : this.address)
+  //   );
+  // }
+  async getStat(id: string) {
+    const docRef = doc(this.collection, this.address);
+    const docSnapshot = await getDoc(docRef);
+    if (docSnapshot.exists()) {
+      const data = docSnapshot.data();
+      return data[id];
+    } else {
+      return null;
+    }
   }
 
   async removeStat(id: string) {
@@ -55,14 +65,6 @@ class Tweeward {
     (await getDocs(this.collection)).docs.forEach((doc) => {
       stats = doc.data();
     });
-    // console.log(
-    //   Object.keys(stats)
-    //     .filter((_id) => _id !== id)
-    //     .reduce((obj: any, id) => {
-    //       obj[id] = stats[id];
-    //       return obj;
-    //     }, {})
-    // );
     return await setDoc(
       doc(this.collection, this.address),
       Object.keys(stats)

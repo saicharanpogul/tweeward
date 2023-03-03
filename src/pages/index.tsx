@@ -1,5 +1,6 @@
 import { getTweetStats } from "@/api";
 import { PageMeta, StatCard } from "@/components";
+import useDapp from "@/hooks/useDapp";
 import useLocalWallet from "@/hooks/useLocalWallet";
 import useSignature from "@/hooks/useSignature";
 import { tweetObjArrToArray, tweetUrlToId } from "@/utils";
@@ -12,15 +13,14 @@ import {
   FormControl,
   FormErrorMessage,
   Input,
-  Text,
   useToast,
 } from "@chakra-ui/react";
+import styled from "@emotion/styled";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
-import styled from "@emotion/styled";
 
 const Scrollable = styled(Flex)`
   ::-webkit-scrollbar {
@@ -37,6 +37,7 @@ export default function Home() {
   const { balance } = useLocalWallet();
   const { signature, getSignature } = useSignature();
   const toast = useToast();
+  const { initializeSolSyncCore } = useDapp();
   const schema = yup.object().shape({
     url: yup.string().required("URL is required"),
   });
@@ -185,6 +186,7 @@ export default function Home() {
                   tweet={tweet}
                   key={tweet?.tweetId}
                   fetchStats={fetchStats}
+                  initializeSolSyncCore={initializeSolSyncCore}
                 />
               ))}
             </Box>

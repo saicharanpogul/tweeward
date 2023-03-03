@@ -1,16 +1,20 @@
-
-import { NavBar, WalletContextProvider } from "@/components";
+import { NavBar, WalletContextProvider, WorkspaceProvider } from "@/components";
+import { wrapper } from "@/store/store";
 import { theme } from "@/styles/theme";
 import { ChakraProvider } from "@chakra-ui/react";
 import type { AppProps } from "next/app";
 
-export default function App({ Component, pageProps }: AppProps) {
+const MyApp = function App({ Component, pageProps }: AppProps) {
   return (
     <ChakraProvider theme={theme}>
       <WalletContextProvider>
-        <NavBar />
-        <Component {...pageProps} />
+        <WorkspaceProvider>
+          <NavBar />
+          <Component {...pageProps} />
+        </WorkspaceProvider>
       </WalletContextProvider>
     </ChakraProvider>
   );
-}
+};
+
+export default wrapper.withRedux(MyApp);

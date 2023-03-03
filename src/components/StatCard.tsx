@@ -1,5 +1,7 @@
 import { getTweetStats } from "@/api";
 import useSignature from "@/hooks/useSignature";
+import { setCurrentId } from "@/store/progressSlice";
+import { Tweeward } from "@/utils/firebase";
 import {
   Button,
   CircularProgress,
@@ -14,10 +16,10 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import React, { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import { FiMoreVertical } from "react-icons/fi";
-import { Icon } from "@chakra-ui/icons";
-import { Tweeward } from "@/utils/firebase";
+import { useDispatch } from "react-redux";
+import ProgressModal from "./ProgressModal";
 
 const Stat = ({ title, value }: { title: string; value: number }) => {
   return (
@@ -32,19 +34,28 @@ const Stat = ({ title, value }: { title: string; value: number }) => {
   );
 };
 
-const StatCard = ({
-  tweet,
-  fetchStats,
-}: {
+interface Props {
   tweet: any;
   fetchStats: () => Promise<void>;
+  initializeSolSyncCore: (onModalClose: () => void) => Promise<void>;
+}
+const StatCard: React.FC<Props> = ({
+  tweet,
+  fetchStats,
+  initializeSolSyncCore,
 }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const { connection } = useConnection();
   const walletAdapter = useWallet();
   const toast = useToast();
+  const dispatch = useDispatch();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isModalOpen,
+    onOpen: onModalOpen,
+    onClose: onModalClose,
+  } = useDisclosure();
   const { signature, getSignature } = useSignature();
   const [isLessThan768] = useMediaQuery("(max-width: 768px)");
   const refreshStat = useCallback(
@@ -149,7 +160,16 @@ const StatCard = ({
         >
           Refresh
         </Button>
-        <Button w="full" mx="2" mt={["2", "2", "0", "0", "0"]}>
+        <Button
+          w="full"
+          mx="2"
+          mt={["2", "2", "0", "0", "0"]}
+          onClick={async () => {
+            onModalOpen();
+            dispatch(setCurrentId(tweet?.tweetId));
+            await initializeSolSyncCore(onModalClose);
+          }}
+        >
           Claim
         </Button>
         <Menu
@@ -205,6 +225,11 @@ const StatCard = ({
           )}
         </Menu>
       </Flex>
+      <ProgressModal
+        isModalOpen={isModalOpen}
+        onModalOpen={onModalOpen}
+        onModalClose={onModalClose}
+      />
     </Flex>
   );
 };
